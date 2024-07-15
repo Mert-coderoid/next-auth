@@ -5,12 +5,15 @@ import React, { useState } from "react";
 
 const UserForm = () => {
     const router = useRouter();
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        password: ""
+    });
     const [errorMessage, setErrorMessage] = useState("");
 
     const handleChange = (e) => {
-        const value = e.target.value;
-        const name = e.target.name;
+        const { name, value } = e.target;
         setFormData((prevState) => ({
             ...prevState,
             [name]: value,
@@ -20,21 +23,26 @@ const UserForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMessage("");
-        const response = await fetch("/api/Users", {
-            method: "POST",
-            // headers: {
-            //     "Content-Type": "application/json",
-            // },
-            body: JSON.stringify(formData),
-            "content-type": "application/json",
-        });
+        
+        try {
+            const response = await fetch("/api/Users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ formData })
+            });
 
-        if (response.ok) {
-            const response = await response.json();
-            setErrorMessage(response.message);
-        } else {
-            router.refresh();
-            router.push("/");
+            if (response.ok) {
+                const responseData = await response.json();
+                setErrorMessage(responseData.message);
+                router.push("/");
+            } else {
+                const errorData = await response.json();
+                setErrorMessage(errorData.message || "Something went wrong");
+            }
+        } catch (error) {
+            setErrorMessage("An error occurred while submitting the form");
         }
     }
 
@@ -48,7 +56,7 @@ const UserForm = () => {
                 name="name"
                 placeholder="Name"
                 onChange={handleChange}
-                required={true}
+                required
                 value={formData.name}
                 className="m-2 bg-slate-400 rounded"
             />
@@ -59,10 +67,9 @@ const UserForm = () => {
                 name="email"
                 placeholder="Email"
                 onChange={handleChange}
-                required={true}
+                required
                 value={formData.email}
                 className="m-2 bg-slate-400 rounded"
-
             />
             <label htmlFor="password">Password</label>
             <input
@@ -71,17 +78,15 @@ const UserForm = () => {
                 name="password"
                 placeholder="Password"
                 onChange={handleChange}
-                required={true}
+                required
                 value={formData.password}
                 className="m-2 bg-slate-400 rounded"
-
             />
-            <button type="submit" value="Create User" className="bg-slate-400 rounded p-2">Create User</button>
+            <button type="submit" className="bg-slate-400 rounded p-2">Create User</button>
             
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
         </form>
     );
-
 };
 
 export default UserForm;

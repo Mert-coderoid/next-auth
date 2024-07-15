@@ -7,16 +7,14 @@ export async function POST(req) {
         const body = await req.json();
         const userData = body.formData;
 
-        if(!userData.email || !userData.name || !userData.password) {
-            return NextResponse.json({ message: "Please provide all fields" }, 400);
+        if (!userData || !userData.email || !userData.name || !userData.password) {
+            return NextResponse.json({ message: "Please provide all fields" }, { status: 400 });
         }
 
-        const duplicate = await User.findOne({ email: userData.email })
-            .lean()
-            .exec();
-        
-        if(duplicate) {
-            return NextResponse.json({ message: "Duplicate email" }, 409);
+        const duplicate = await User.findOne({ email: userData.email }).lean().exec();
+
+        if (duplicate) {
+            return NextResponse.json({ message: "Duplicate email" }, { status: 409 });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -24,10 +22,10 @@ export async function POST(req) {
 
         userData.password = hash;
         await User.create(userData);
-        return NextResponse.json({ message: "User created" }, 201);
+        return NextResponse.json({ message: "User created" }, { status: 201 });
 
     } catch (error) {
         console.error(error);
-        return NextResponse.json({ message: "Error", error: error.message }, 500);
+        return NextResponse.json({ message: "Error", error: error.message }, { status: 500 });
     }
 }
