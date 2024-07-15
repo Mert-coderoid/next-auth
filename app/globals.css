@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @layer işareti şeklinde kullanılarak belirli bir katmana özgü stil tanımlamaları yapılabilir. */
+@layer base {
+  h1 {
+    /* @apply ile birden fazla sınıfı bir arada kullanabiliriz. */
+    @apply font-bold text-2xl;
+    /* text-2xl sınıfı font-size: 1.5rem; değerine sahiptir. */
+  }
+
+  a {
+    @apply underline font-bold;
+  }
+}
