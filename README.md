@@ -57,25 +57,24 @@ In this project, users are assigned roles, and these roles are used to control a
 
 **`app/middleware.js`**:
 ```javascript
-import { getToken } from "next-auth/jwt";
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-export async function middleware(req) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    const { pathname } = req.nextUrl;
+export default withAuth((req) => {
+    console.log("req.nextUrl.pathname", req.nextUrl.pathname);
+    console.log("req.nextauth.token.role", req.nextauth.token.role);
 
-    if (pathname.startsWith("/admin")) {
-        if (!token || token.role !== "admin") {
-            return NextResponse.redirect(new URL("/unauthorized", req.url));
-        }
+    if (req.nextUrl.pathname === "/CreateUser" && req.nextauth.token.role !== "admin") {
+        return NextResponse.rewrite( new URL("/Denied", req.url));
     }
+},
+{
+    callbacks: {
+        authorized: ({ token }) => !!token,
+    }
+});
 
-    return NextResponse.next();
-}
-
-export const config = {
-    matcher: ["/admin/:path*"]
-};
+export const config = { matcher: ["/CreateUser"] };  // matcher ile CreateUSer sayfasını koruma altına alıyoruz
 ```
 
 ### Explanations
