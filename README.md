@@ -57,25 +57,24 @@ Bu projede, kullanıcılara roller atanmıştır ve bu roller, belirli sayfalara
 
 **`app/middleware.js`**:
 ```javascript
-import { getToken } from "next-auth/jwt";
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-export async function middleware(req) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    const { pathname } = req.nextUrl;
+export default withAuth((req) => {
+    console.log("req.nextUrl.pathname", req.nextUrl.pathname);
+    console.log("req.nextauth.token.role", req.nextauth.token.role);
 
-    if (pathname.startsWith("/admin")) {
-        if (!token || token.role !== "admin") {
-            return NextResponse.redirect(new URL("/unauthorized", req.url));
-        }
+    if (req.nextUrl.pathname === "/CreateUser" && req.nextauth.token.role !== "admin") {
+        return NextResponse.rewrite( new URL("/Denied", req.url));
     }
+},
+{
+    callbacks: {
+        authorized: ({ token }) => !!token,
+    }
+});
 
-    return NextResponse.next();
-}
-
-export const config = {
-    matcher: ["/admin/:path*"]
-};
+export const config = { matcher: ["/CreateUser"] };  // matcher ile CreateUSer sayfasını koruma altına alıyoruz
 ```
 
 ### Açıklamalar
@@ -116,4 +115,4 @@ Tarayıcıda `http://localhost:3000` adresine gidin ve kullanıcı kaydı ve kim
 
 ## Sonuç
 
-Bu proje, modern web teknolojilerini kullanarak güvenli ve esnek bir kimlik doğrulama sistemi oluşturmayı amaçlamaktadır. Next.js ve NextAuth.js kullanılarak, hem sosyal medya hesapları ile hem de geleneksel e-posta ve şifre kombinasyonu ile giriş yapılabilir. MongoDB ve Mongoose kullanılarak veritabanı yönetimi sağlanmaktadır. Kullanıcılara roller atanmış ve belirli sayfalara erişimlerini kontrol etmek için middleware kullanılmıştır. Bu dokümantasyon, projenin genel yapısını, amacını ve kullanılan yöntemleri özetlemektedir.
+Bu proje, modern web teknolojilerini kullanarak güvenli ve esnek bir kimlik doğrulama sistemi oluşturmayı amaçlamaktadır. Next.js ve NextAuth.js kullanılarak, hem sosyal medya hesapları ile hem de geleneksel e-posta ve şifre kombinasyonu ile giriş yapılabilir. MongoDB ve Mongoose kullanılarak veritabanı yönetimi sağlanmaktadır.
